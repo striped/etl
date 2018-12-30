@@ -1,0 +1,11 @@
+id:name:timestamp:text
+1:element1:1:A rain shadow is a dry area on the lee back side of a mountainous area.
+2:element2:1:This sinking, dry air produces a rain shadow, or area in the lee of a mountain with less rain and cloudcover.
+3:element3:1:A rain shadow is an area of dry land that lies on the leeward (or downwind) side of a mountain.
+4:element4:3:This is known as the rain shadow effect and is the primary cause of leeward deserts of mountain ranges, such as California's Death Valley.
+5:element5:1:Two Women. Secrets. A Broken Land. [DVD Australia]
+6:element6:1:A rain shadow is a dry area on the lee back side of a mountainous area.
+7:element7:1:This sinking, dry air produces a rain shadow, or area in the lee of a mountain with less rain and cloudcover.
+8:element8:1:A rain shadow is an area of dry land that lies on the leeward (or downwind) side of a mountain.
+9:element9:1:This is known as the rain shadow effect and is the primary cause of leeward deserts of mountain ranges, such as California's Death Valley.
+10:element10:1:Two Women. Secrets. A Broken Land. [DVD Australia]

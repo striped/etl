@@ -11,7 +11,7 @@
 	<groupId>org.kot.test.etl</groupId>
 	<artifactId>akka-stream</artifactId>
 
-	<name>ETL: Akka Stream for CSV</name>
+	<name>ETL: Akka Stream w/ CSV</name>
 
 	<dependencies>
 		<dependency>

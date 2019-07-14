@@ -1,0 +1,9 @@
+- id: id
+  name: ID
+  binder: (Function<String, Integer>) v -> Integer.parseInt(v)
+- id: name
+  name: Name
+  binder: (Function<String, String>) v -> v
+- id: info
+  name: Description
+  binder: (Function<String, String>) v -> v

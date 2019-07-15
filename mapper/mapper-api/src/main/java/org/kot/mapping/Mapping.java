@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @author <a href=mailto:striped@gmail.com>striped</a>
  * @created 2019-07-14 22:02
  */
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Mapping {
 

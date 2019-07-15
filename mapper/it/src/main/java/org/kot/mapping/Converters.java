@@ -13,25 +13,17 @@ import java.time.format.ResolverStyle;
  */
 public class Converters {
 
-	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("d/MM/yyyy")
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/uuuu")
 			.withResolverStyle(ResolverStyle.STRICT);
 
 	private Converters() {
 	}
 
 	public static LocalDate toDate(String v) {
-		try {
-			return LocalDate.parse(v, FORMATTER);
-		} catch (Exception e) {
-			return null;
-		}
+		return LocalDate.parse(v, FORMATTER);
 	}
 
 	public static BigDecimal toDecimal(String v) {
-		try {
-			return new BigDecimal(v);
-		} catch (Exception e) {
-			return null;
-		}
+		return new BigDecimal(v);
 	}
 }

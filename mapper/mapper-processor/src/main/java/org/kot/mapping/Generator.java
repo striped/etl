@@ -2,6 +2,7 @@ package org.kot.mapping;
 
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -27,9 +28,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * TODO Describe me.
@@ -45,17 +45,22 @@ public class Generator {
 
 	private final Function<TypeElement, String> classNameGenerator;
 
-	private final Map<String, Function<Map<String, String>, Stream<String>>> pairGenerator;
+	private final Map<String, BiFunction<TypeName, List<Map<String, String>>, CodeBlock>> initializers;
 
 	public Generator(Filer filer, Function<TypeElement, String> packageNameGenerator, Function<TypeElement, String> classNameGenerator) {
 		this.filer = filer;
 		this.packageNameGenerator = packageNameGenerator;
 		this.classNameGenerator = classNameGenerator;
 
-		pairGenerator = new HashMap<String, Function<Map<String, String>, Stream<String>>>() {{
-			put("header", c -> Stream.of("\"" + c.get("name") + "\"", "\"" + c.get("id") + "\""));
-			put("binders", c -> Stream.of("\"" + c.get("name") + "\"", c.get("binder")));
+		this.initializers = new HashMap<String, BiFunction<TypeName, List<Map<String, String>>, CodeBlock>>() {{
+			put("header", (t, l) -> l.stream()
+					.map(c -> CodeBlock.of("$S, $S", c.get("name"), c.get("id")))
+					.collect(CodeBlock.joining(",\n", "$N(\n", "\n)")));
+			put("binders", (t, l) -> l.stream()
+					.map(c -> CodeBlock.of("$S, ($T) " + c.get("binder"), c.get("name"), t))
+					.collect(CodeBlock.joining(",\n", "$N(\n", "\n)")));
 		}};
+
 	}
 
 	public void generateClass(TypeElement element, List<Map<String, String>> columns) throws IOException {
@@ -70,7 +75,7 @@ public class Generator {
 				.addAnnotation(
 						AnnotationSpec.builder(Generated.class)
 								.addMember("value", "$S", Processor.class.getCanonicalName())
-								.addMember("comments", "$S", "Do not amend manually")
+								.addMember("comments", "$S", "Do not amend, class is generated")
 								.addMember("date", "$S", LocalDateTime.now())
 								.build())
 				.addMethod(initMethod);
@@ -80,31 +85,29 @@ public class Generator {
 				continue;
 			}
 			ExecutableElement method = (ExecutableElement) e;
-			Function<Map<String, String>, Stream<String>> initializer = pairGenerator.get(method.getSimpleName().toString());
+			BiFunction<TypeName, List<Map<String, String>>, CodeBlock> initializer = initializers.get(method.getSimpleName().toString());
 			if (null == initializer) {
 				continue;
 			}
 
-			TypeName type = ParameterizedTypeName.get(method.getReturnType());
+			ParameterizedTypeName mapType = (ParameterizedTypeName) ParameterizedTypeName.get(method.getReturnType());
 			classSpec.addField(
-					FieldSpec.builder(type, method.getSimpleName().toString(), Modifier.PRIVATE, Modifier.FINAL)
-							.initializer(columns.stream().flatMap(initializer).collect(Collectors.joining(", ", "$N(", ")")), initMethod.name)
+					FieldSpec.builder(mapType, method.getSimpleName().toString(), Modifier.PRIVATE, Modifier.FINAL)
+							.initializer(initializer.apply(mapType.typeArguments.get(1), columns).toString(), initMethod.name)
 							.build());
 
 			classSpec.addMethod(
 					MethodSpec.methodBuilder(method.getSimpleName().toString())
 							.addAnnotation(Override.class)
 							.addModifiers(Modifier.PUBLIC)
-							.returns(type)
+							.returns(mapType)
 							.addStatement("return $N", method.getSimpleName().toString())
 							.build());
 
 		}
 
-		JavaFile file = JavaFile.builder(packageName, classSpec.build())
-				.build();
-
-		file.writeTo(filer);
+		JavaFile.builder(packageName, classSpec.build())
+				.build().writeTo(filer);
 	}
 
 	public void generateServiceMeta(TypeElement element) throws IOException {
@@ -129,7 +132,9 @@ public class Generator {
 				.addParameter(Object[].class, "values")
 				.varargs(true)
 				.addStatement("$T result = new $T(values.length, 1F)", resultType, resultImpl)
-				.addStatement("for (int i = 0; i < values.length;) result.put(($T) values[i++], ($T) values[i++])", keyType, valType)
+				.beginControlFlow("for (int i = $L; i < values.length;)", 0)
+				.addStatement("result.put(($T) values[i++], ($T) values[i++])", keyType, valType)
+				.endControlFlow()
 				.addStatement("return $T.unmodifiableMap(result)", Collections.class)
 				.build();
 	}

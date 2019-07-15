@@ -1,12 +1,12 @@
 - id: id
   name: ID
-  binder: (Function<String, Integer>) v -> Integer.parseInt(v)
+  binder: v -> Integer.parseInt(v)
 - id: name
   name: Name
-  binder: (Function<String, String>) v -> v
+  binder: v -> v
 - id: date
   name: Date
-  binder: (Function<String, java.time.LocalDate>) v -> Converters.toDate(v)
+  binder: v -> Converters.toDate(v)
 - id: amount
   name: Amount
-  binder: (Function<String, java.math.BigDecimal>) v -> Converters.toDecimal(v)
+  binder: v -> Converters.toDecimal(v)

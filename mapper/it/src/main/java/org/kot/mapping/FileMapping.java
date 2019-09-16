@@ -11,15 +11,17 @@ import java.util.function.Function;
  * @author <a href=mailto:striped@gmail.com>striped</a>
  * @created 2019-07-14 23:00
  */
-@Mapping("mapping/csv.yaml")
-public interface CsvMapping {
+@CSVMapping("mapping/csv.yaml")
+public interface FileMapping {
 
 	Map<String, String> header();
 
 	Map<String, Function<String, ?>> binders();
 
-	static CsvMapping load() {
-		Iterator<CsvMapping> i = ServiceLoader.load(CsvMapping.class)
+	Map<String, Function<?, String>> serializers();
+
+	static FileMapping load() {
+		Iterator<FileMapping> i = ServiceLoader.load(FileMapping.class)
 				.iterator();
 		return i.hasNext() ? i.next() : null;
 	}

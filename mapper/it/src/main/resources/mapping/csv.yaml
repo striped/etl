@@ -1,12 +1,15 @@
-- id: id
-  name: ID
-  binder: v -> Integer.parseInt(v)
-- id: name
-  name: Name
-  binder: v -> v
-- id: date
-  name: Date
-  binder: v -> Converters.toDate(v)
-- id: amount
-  name: Amount
-  binder: v -> Converters.toDecimal(v)
+defaultBinder: v -> v
+defaultSerializer: v -> v.toString()
+entries:
+  - id: id
+    name: ID
+    binder: v -> Integer.parseInt(v)
+  - id: name
+    name: Name
+  - id: date
+    name: Date
+    binder: v -> Converters.toDate(v)
+    serializer: v -> Converters.fromDate((java.time.LocalDate) v)
+  - id: amount
+    name: Amount
+    binder: v -> Converters.toDecimal(v)

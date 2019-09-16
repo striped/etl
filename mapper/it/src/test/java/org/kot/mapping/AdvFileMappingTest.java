@@ -27,24 +27,24 @@ import static org.junit.Assert.assertThat;
  * @author <a href=mailto:striped@gmail.com>striped</a>
  * @created 2019-07-14 23:13
  */
-public class ExtCsvMappingTest {
+public class AdvFileMappingTest {
 
 	@Test
 	public void shouldExist() {
-		ExtCsvMapping mapping = ExtCsvMapping.load();
+		AdvFileMapping mapping = AdvFileMapping.load();
 		assertThat(mapping, notNullValue());
 	}
 
 	@Test
 	public void shouldProvideHeader() {
-		ExtCsvMapping mapping = ExtCsvMapping.load();
+		AdvFileMapping mapping = AdvFileMapping.load();
 		assertThat(mapping, notNullValue());
 		assertThat(mapping.header(), aMapWithSize(greaterThan(0)));
 	}
 
 	@Test
 	public void shouldProvideBinders() {
-		ExtCsvMapping mapping = ExtCsvMapping.load();
+		AdvFileMapping mapping = AdvFileMapping.load();
 		assertThat(mapping, notNullValue());
 		assertThat(mapping.binders(), aMapWithSize(greaterThan(0)));
 	}
@@ -58,14 +58,15 @@ public class ExtCsvMappingTest {
 			put("Amount", "123456.90");
 		}};
 
-		ExtCsvMapping mapping = ExtCsvMapping.load();
+		AdvFileMapping mapping = AdvFileMapping.load();
 
 		List<String> errors = new ArrayList<>();
 		Map<String, ?> data = raw.entrySet().stream()
 				.collect(Collectors.toMap(
 						e -> mapping.header().get(e.getKey()),
 						e -> {
-							ExtCsvMapping.Binder<String, ?> binder = mapping.binders().get(e.getKey());
+							String id = mapping.header().get(e.getKey());
+							AdvFileMapping.Binder<String, ?> binder = mapping.binders().get(id);
 							try {
 								return binder.bind(e.getValue());
 							} catch (Exception ex) {
@@ -92,14 +93,14 @@ public class ExtCsvMappingTest {
 			put("Amount", "1yy23456.90");
 		}};
 
-		ExtCsvMapping mapping = ExtCsvMapping.load();
+		AdvFileMapping mapping = AdvFileMapping.load();
 
 		List<String> errors = new ArrayList<>();
 		Map<String, ?> data = raw.entrySet().stream()
 				.collect(Collectors.toMap(
 						e -> mapping.header().get(e.getKey()),
 						e -> {
-							ExtCsvMapping.Binder<String, ?> binder = mapping.binders().get(e.getKey());
+							AdvFileMapping.Binder<String, ?> binder = mapping.binders().get(e.getKey());
 							try {
 								return binder.bind(e.getValue());
 							} catch (Exception ex) {
@@ -115,6 +116,50 @@ public class ExtCsvMappingTest {
 				hasEntry(is("name"), notNullValue()),
 				hasEntry(is("date"), notNullValue()),
 				hasEntry(is("amount"), notNullValue())
+		));
+	}
+
+	@Test
+	public void shouldProvideSerializers() {
+		AdvFileMapping mapping = AdvFileMapping.load();
+		assertThat(mapping, notNullValue());
+		assertThat(mapping.serializers(), aMapWithSize(greaterThan(0)));
+	}
+
+	@Test
+	public void shouldSerializeData() {
+		Map<String, ?> raw = new HashMap<String, Object>() {{
+			put("id", 1111);
+			put("name", "Name");
+			put("date", LocalDate.of(1999, 1, 1));
+			put("amount", new BigDecimal("123456.90"));
+		}};
+
+		AdvFileMapping mapping = AdvFileMapping.load();
+		Map<String, String> header = mapping.header().entrySet().stream()
+				.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
+		List<String> errors = new ArrayList<>();
+		Map<String, ?> data = raw.entrySet().stream()
+				.collect(Collectors.toMap(
+						e -> header.get(e.getKey()),
+						e -> {
+							String id = e.getKey();
+							Object value = e.getValue();
+							try {
+								return mapping.serializer(id).bind(value);
+							} catch (Exception ex) {
+								errors.add("" + e.getKey() + ": failure to serialize " + e.getValue());
+								return e.getValue();
+							}
+						}
+				));
+		assertThat(errors, emptyIterable());
+		assertThat(data, allOf(
+				hasEntry(is("ID"), is("1111")),
+				hasEntry(is("Name"), is("Name")),
+				hasEntry(is("Date"), is("01/01/1999")),
+				hasEntry(is("Amount"), is("123456.90"))
 		));
 	}
 }

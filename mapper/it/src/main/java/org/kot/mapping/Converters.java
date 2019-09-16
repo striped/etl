@@ -23,6 +23,10 @@ public class Converters {
 		return LocalDate.parse(v, FORMATTER);
 	}
 
+	public static String fromDate(LocalDate v) {
+		return FORMATTER.format(v);
+	}
+
 	public static BigDecimal toDecimal(String v) {
 		return new BigDecimal(v);
 	}

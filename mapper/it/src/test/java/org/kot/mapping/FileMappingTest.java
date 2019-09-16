@@ -23,24 +23,24 @@ import static org.junit.Assert.assertThat;
  * @author <a href=mailto:striped@gmail.com>striped</a>
  * @created 2019-07-14 23:13
  */
-public class CsvMappingTest {
+public class FileMappingTest {
 
 	@Test
 	public void shouldExist() {
-		CsvMapping mapping = CsvMapping.load();
+		FileMapping mapping = FileMapping.load();
 		assertThat(mapping, notNullValue());
 	}
 
 	@Test
 	public void shouldProvideHeader() {
-		CsvMapping mapping = CsvMapping.load();
+		FileMapping mapping = FileMapping.load();
 		assertThat(mapping, notNullValue());
 		assertThat(mapping.header(), aMapWithSize(greaterThan(0)));
 	}
 
 	@Test
 	public void shouldProvideBinders() {
-		CsvMapping mapping = CsvMapping.load();
+		FileMapping mapping = FileMapping.load();
 		assertThat(mapping, notNullValue());
 		assertThat(mapping.binders(), aMapWithSize(greaterThan(0)));
 	}
@@ -54,12 +54,15 @@ public class CsvMappingTest {
 			put("Amount", "123456.90");
 		}};
 
-		CsvMapping mapping = CsvMapping.load();
+		FileMapping mapping = FileMapping.load();
 
 		Map<String, ?> data = raw.entrySet().stream()
 				.collect(Collectors.toMap(
 						e -> mapping.header().get(e.getKey()),
-						e -> mapping.binders().get(e.getKey()).apply(e.getValue())
+						e -> {
+							String id = mapping.header().get(e.getKey());
+							return mapping.binders().get(id).apply(e.getValue());
+						}
 				));
 		assertThat(data, allOf(
 				hasEntry(is("id"), instanceOf(Integer.class)),

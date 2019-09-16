@@ -51,7 +51,7 @@ public class Processor extends AbstractProcessor {
 
 	@Override
 	public Set<String> getSupportedAnnotationTypes() {
-		return Collections.singleton(Mapping.class.getCanonicalName());
+		return Collections.singleton(CSVMapping.class.getCanonicalName());
 	}
 
 	@Override
@@ -59,24 +59,23 @@ public class Processor extends AbstractProcessor {
 		return SourceVersion.latestSupported();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnv) {
-		Generator generator = new Generator(filer, e -> utils.getPackageOf(e).getQualifiedName() + "", e -> e.getSimpleName() + "Impl");
+		Generator generator = new Generator(filer, messager, e -> utils.getPackageOf(e).getQualifiedName() + "", e -> e.getSimpleName() + "Impl");
 
-		for (Element element : roundEnv.getElementsAnnotatedWith(Mapping.class)) {
+		for (Element element : roundEnv.getElementsAnnotatedWith(CSVMapping.class)) {
 			if (ElementKind.INTERFACE != element.getKind()) {
-				error(element, "%s applicable to interface only", Mapping.class);
+				error(element, "%s applicable to interface only", CSVMapping.class);
 				continue;
 			}
-			String uri = element.getAnnotation(Mapping.class).value();
+			String uri = element.getAnnotation(CSVMapping.class).value();
 			if ("".equals(uri.trim())) {
 				error(element, "Associated mapping \"%s\" is invalid", uri);
 				continue;
 			}
 			try {
 				FileObject file = filer.getResource(StandardLocation.CLASS_OUTPUT, "", uri);
-				List<Map<String, String>> columns = yaml.loadAs(file.openReader(false), List.class);
+				Mapping columns = yaml.loadAs(file.openReader(false), Mapping.class);
 				TypeElement face = (TypeElement) element;
 
 				info(element, "Generating mapping implementation");
@@ -95,6 +94,8 @@ public class Processor extends AbstractProcessor {
 	}
 
 	private void info(Element element, String message) {
-		messager.printMessage(Diagnostic.Kind.NOTE, message, element);
+		if (verbose) {
+			messager.printMessage(Diagnostic.Kind.NOTE, message, element);
+		}
 	}
 }

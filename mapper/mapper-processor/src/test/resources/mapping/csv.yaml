@@ -1,9 +1,13 @@
-- id: id
-  name: ID
-  binder: (Function<String, Integer>) v -> Integer.parseInt(v)
-- id: name
-  name: Name
-  binder: (Function<String, String>) v -> v
-- id: info
-  name: Description
-  binder: (Function<String, String>) v -> v
+defaultBinder: v -> v
+defaultSerializer: v -> v.toString()
+entries:
+  - id: id
+    name: ID
+    binder: (Function<String, Integer>) v -> Integer.parseInt(v)
+  - id: name
+    name: Name
+    binder: (Function<String, String>) v -> v
+    serializer: v -> v
+  - id: info
+    name: Description
+    binder: (Function<String, String>) v -> v
